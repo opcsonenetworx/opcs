@@ -1,0 +1,24 @@
+1. encoder
+opcsencoder@onenetworx.com
+encoder123
+2. Underwriter
+opcsunderwriter@onenetworx.com
+underwriter123
+3. Collection Officer
+opcscollection@onenetworx.com
+collection123
+4. Sales Officer
+opcssales@onenetworx.com
+sales123
+5. Cashier
+opcscashier@onenetworx.com
+cashier123
+6. Accounting Assistant
+opcsassistant@onenetworx.com
+assistant123
+7. Accountant
+opcsaccountant@onenetworx.com
+accountant123
+8. President
+opcspresident@onenetworx.com
+president123

@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Policy Form</title>
+        <style>
+            body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 20px;
+            padding: 20px;
+            padding-top: 70px; /* Adjust based on navbar height */
+        }
+
+         /* Navbar Styling */
+        .navbar {
+            background-color: #a7c7e7;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            width: 100vw; /* Full width */
+            box-sizing: border-box; /* Ensure padding doesn't affect width */
+            position: fixed; /* Make it fixed for a sticky effect */
+            top: 0;
+            left: 0;
+            height: 60px; /* Adjust height as needed */
+        }
+
+        .navbar .logo {
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar .logo img {
+            width: 40px;
+            height: auto;
+            margin-right: 10px;
+        }
+
+        /* Profile Dropdown */
+        .profile {
+            position: relative;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            margin-right: 20px;
+        }
+
+        .profile img {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            margin-left: 10px;
+            border: 2px solid white;
+        }
+
+        .profile-menu {
+            display: none;
+            position: absolute;
+            top: 45px;
+            right: 0;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            z-index: 1;
+            width: 150px;
+        }
+
+        .profile-menu a {
+            display: block;
+            padding: 10px;
+            text-decoration: none;
+            color: #333;
+            font-size: 14px;
+            text-align: left;
+        }
+
+        .profile-menu a:hover {
+            background-color: #f0f0f0;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center; 
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .form-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .form-column {
+            width: 48%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: bold;
+            margin-top: 10px;
+            color: #555;
+        }
+
+        input, select, textarea {
+            width: 90%;
+            padding: 12px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        textarea {
+            resize: none;
+            height: 60px;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: #007bff;
+            outline: none;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center; /* Centers the button horizontally */
+            margin-top: 20px;
+        }
+
+        button {
+            width: 200px; /* Set a fixed width for better alignment */
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        @media screen and (max-width: 768px) {
+            .form-container {
+                flex-direction: column;
+            }
+            .form-column {
+                width: 100%;
+            }
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        /* Centered Modal Box */
+        .modal-content {
+            background: white;
+            width: 500px;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: left; /* Align content to the left */
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Centered Close Button */
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            color: black;
+        }
+
+        .close-btn:hover {
+            color: red;
+        }
+
+        /* Centered Close Button at Bottom */
+        #closeModalBtn {
+            align-self: center; /* Centers the button */
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: blue;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #closeModalBtn:hover {
+            background-color: #0056b3;
+        }
+        </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <div class="navbar">
+        <div class="logo">
+            <img src="./assets/bg6.png" alt="Company Logo"> <!-- Replace with your logo -->
+            <span><h2>Onenetworx</h2></span>
+        </div>
+
+        <div class="profile" onclick="toggleProfileMenu()">
+            <span>Juan Dela Cruz</span>
+            <img src="./assets/bg6.png" alt="Profile"> <!-- Replace with profile picture -->
+            <div class="profile-menu" id="profileMenu">
+                <a href="#" onclick="openProfileModal()">Edit Profile</a>
+                <a href="#" onclick="logout()">Logout</a>
+            </div>
+        </div>
+    </div>
+
+<div class="container">
+    <h2>Policy Encoding Form</h2>
+    <form id="policyForm">
+        <div class="form-container">
+            <!-- First Column -->
+            <div class="form-column">
+                <label for="issueDate">Issue Date:</label>
+                <input type="date" id="issueDate" name="issueDate" required>
+
+                <label for="lineOfBusiness">Line of Business:</label>
+                <input type="text" id="lineOfBusiness" name="lineOfBusiness" required>
+
+                <label for="mortgage">Mortgage:</label>
+                <input type="text" id="mortgage" name="mortgage" required>
+
+                <label for="assuredName">Assured Name:</label>
+                <input type="text" id="assuredName" name="assuredName" required>
+
+                <label for="policyNumber">Policy Number:</label>
+                <input type="text" id="policyNumber" name="policyNumber" required>
+
+                <label for="provider">Provider:</label>
+                <input type="text" id="provider" name="provider" required>
+
+                <label for="endorsementNumber">Endorsement No.:</label>
+                <input type="text" id="endorsementNumber" name="endorsementNumber" required>
+
+                <label for="inceptionDate">Inception Date:</label>
+                <input type="date" id="inceptionDate" name="inceptionDate" required>
+
+                <label for="expiryDate">Expiry Date:</label>
+                <input type="date" id="expiryDate" name="expiryDate" required>
+
+                <label for="plateNumber">Plate No.:</label>
+                <input type="text" id="plateNumber" name="plateNumber" required>
+
+                <label for="propertyInsured">Property/Unit Insured:</label>
+                <input type="text" id="propertyInsured" name="propertyInsured" required>
+
+                <label for="pf">PF:</label>
+                <input type="number" id="pf" name="pf" step="any">
+
+                <label for="odTheftFlSumInsured">OD/THEFT/FL/SUM INSURED:</label>
+                <input type="number" id="odTheftFlSumInsured" name="odTheftFlSumInsured" step="any">
+
+                <label for="aon">AON:</label>
+                <input type="number" id="aon" name="aon" step="any">
+
+                <label for="bi">BI:</label>
+                <input type="number" id="bi" name="bi" step="any">
+
+                <label for="pd">PD:</label>
+                <input type="number" id="pd" name="pd" step="any">
+
+                <label for="pa">PA:</label>
+                <input type="text" id="pa" name="pa" step="any">
+
+                <label for="others">Others:</label>
+                <input type="text" id="others" name="others" step="any">
+            </div>
+
+            <!-- Second Column -->
+            <div class="form-column">
+                <label for="premOdFl">PREM-OD/T/FL:</label>
+                <input type="number" id="premOdFl" name="premOdFl" step="any">
+
+                <label for="premAon">PREM-AON:</label>
+                <input type="number" id="premAon" name="premAon" step="any">
+
+                <label for="premBi">PREM-BI:</label>
+                <input type="number" id="premBi" name="premBi" step="any">
+
+                <label for="premPd">PREM-PD:</label>
+                <input type="number" id="premPd" name="premPd" step="any">
+
+                <label for="premPa">PREM-PA:</label>
+                <input type="number" id="premPa" name="premPa" step="any">
+
+                <label for="premOther1">PREM-OTHER1:</label>
+                <input type="text" id="premOther1" name="premOther1" step="any">
+
+                <label for="totalNetPremium">TOTAL NET PREMIUM:</label>
+                <input type="number" id="totalNetPremium" name="totalNetPremium" step="any">
+
+                <label for="docStamp">DOC. STAMP:</label>
+                <input type="number" id="docStamp" name="docStamp" step="any">
+
+                <label for="vat">VAT:</label>
+                <input type="number" id="vat" name="vat" step="any">
+
+                <label for="lgt">LGT:</label>
+                <input type="number" id="lgt" name="lgt" step="any">
+
+                <label for="fst">FST:</label>
+                <input type="number" id="fst" name="fst" step="any">
+
+                <label for="others1">OTHERS1:</label>
+                <input type="text" id="others1" name="others1" step="any">
+
+                <label for="grossPremium">Gross Premium/Total Amount Due:</label>
+                <input type="number" id="grossPremium" name="grossPremium" step="any">
+
+                <label for="taxesPayment">Taxes Payment:</label>
+                <input type="number" id="taxesPayment" name="taxesPayment" step="any">
+
+                <label for="employeeHandler">Employee Handler:</label>
+                <input type="text" id="employeeHandler" name="employeeHandler">
+
+                <label for="agentName">Name of Agent/Sub-Agent:</label>
+                <input type="text" id="agentName" name="agentName">
+
+                <label for="clientContact">Client Contact No.:</label>
+                <input type="text" id="clientContact" name="clientContact">
+
+                <label for="clientEmail">Client Email Address:</label>
+                <input type="email" id="clientEmail" name="clientEmail">
+
+                <label for="dueDate">Due Date:</label>
+                <input type="date" id="dueDate" name="dueDate" required>
+            </div>
+        </div>
+
+        <div class="button-container">
+            <button type="submit">Submit Policy</button>
+        </div>
+    </form>
+</div>
+
+<!-- Modal -->
+<div id="summaryModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn">&times;</span> <!-- X button to close -->
+        <h2>Policy Submission Summary</h2>
+        <div id="summaryDetails"></div>
+        <button id="closeModalBtn">Close</button> <!-- Close button -->
+    </div>
+</div>
+
+<script>
+
+    // Toggle Profile Dropdown
+    function toggleProfileMenu() {
+            const menu = document.getElementById("profileMenu");
+            menu.style.display = menu.style.display === "block" ? "none" : "block";
+        }
+
+        // Close dropdown if clicked outside
+        window.onclick = function(event) {
+            if (!event.target.closest('.profile')) {
+                document.getElementById("profileMenu").style.display = "none";
+            }
+        };
+
+        // Logout Functionality
+        function logout() {
+            alert("Logging out...");
+            // Implement actual logout functionality here
+        }
+
+        // Open Profile Modal (Placeholder)
+        function openProfileModal() {
+            alert("Profile modal will open.");
+            // Implement actual profile editing modal here
+        }
+
+        document.getElementById("policyForm").addEventListener("submit", async function(event) {
+    event.preventDefault(); // Prevent form submission
+
+    let formData = new FormData(this);
+    let summaryHTML = "<ul>";
+    let policyData = {};
+
+    // Convert form data to an object
+    formData.forEach((value, key) => {
+        policyData[key] = value;
+        summaryHTML += `<li><strong>${key}:</strong> ${value}</li>`;
+    });
+
+    summaryHTML += "</ul>";
+
+    // Insert summary into modal
+    document.getElementById("summaryDetails").innerHTML = summaryHTML;
+
+    // Show modal
+    document.getElementById("summaryModal").classList.add("show");
+
+    // Wait for user confirmation (optional)
+    document.getElementById("confirmSubmit").addEventListener("click", async function() {
+        await submitPolicy(policyData);
+    });
+});
+
+const API_URL = "https://script.google.com/macros/s/AKfycbwR4vpOWsx7VMDjzj6qh1SbbKliN2zPz0T71vEgIfpMDDoQ7XO0LscVFnnT4wCy4cro/exec";
+
+// Function to fetch and display policies from Google Sheets
+async function loadPolicies() {
+    try {
+        const response = await fetch(`${API_URL}?action=getPolicies`);
+        const data = await response.json();
+
+        if (!response.ok || !Array.isArray(data)) {
+            throw new Error(data.error || "Failed to fetch policies.");
+        }
+
+        const policyTableBody = document.getElementById("policyTableBody");
+        policyTableBody.innerHTML = ""; // Clear existing data
+
+        data.forEach(policy => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${policy.issueDate || "N/A"}</td>
+                <td>${policy.assuredName || "N/A"}</td>
+                <td>${policy.policyNumber || "N/A"}</td>
+                <td>${policy.provider || "N/A"}</td>
+                <td>${policy.totalNetPremium || "N/A"}</td>
+                <td>${policy.dueDate || "N/A"}</td>
+            `;
+            policyTableBody.appendChild(row);
+        });
+
+    } catch (error) {
+        console.error("Error fetching policies:", error);
+        alert("Failed to load policies. Please check your internet connection.");
+    }
+}
+
+// Function to submit a new policy to Google Sheets
+async function submitPolicy(policyData) {
+    try {
+        const response = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "addPolicy", ...policyData }),
+        });
+
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+            throw new Error(result.error || "Failed to submit policy.");
+        }
+
+        alert("Policy added successfully!");
+        closeModal();
+        document.getElementById("policyForm").reset();
+        loadPolicies(); // Refresh the table
+
+    } catch (error) {
+        console.error("Error adding policy:", error);
+        alert("Submission failed. Please try again later.");
+    }
+}
+
+// Handle form submission
+document.getElementById("policyForm").addEventListener("submit", async function (event) {
+    event.preventDefault(); // Prevent default form submission
+
+    let formData = new FormData(this);
+    let policyData = {};
+
+    // Convert formData into an object
+    formData.forEach((value, key) => {
+        policyData[key] = value.trim();
+    });
+
+    // Validate required fields
+    if (!policyData.issueDate || !policyData.assuredName || !policyData.policyNumber) {
+        alert("Please fill in all required fields.");
+        return;
+    }
+
+    // Submit policy
+    await submitPolicy(policyData);
+});
+
+// Function to close the modal
+function closeModal() {
+    document.getElementById("summaryModal").classList.remove("show");
+}
+
+// Load policies when page loads
+document.addEventListener("DOMContentLoaded", loadPolicies);
+
+
+    </script>
+    
+</body>
+</html>

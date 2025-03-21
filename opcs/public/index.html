@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Onenetworx Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            transition: background 1s ease-in-out;
+        }
+
+        .login-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 350px;
+            position: absolute;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+        }
+
+        .show {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        input {
+            width: 90%;
+            padding: 12px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: #f0f0f0;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .mode-btn {
+            background-color: #f0f0f0;
+            color: black;
+            border: 1px solid #ccc;
+        }
+
+        .mode-btn:hover {
+            background-color: #d9d9d9;
+        }
+
+        .active {
+            background-color: #0277bd !important;
+            color: white !important;
+            font-weight: bold;
+        }
+
+        #btn-login {
+            display: none;
+            background-color: #00c853;
+            color: white;
+        }
+
+        #btn-login:hover {
+            background-color: #009624;
+        }
+
+        #error-message {
+            color: red;
+            display: none;
+        }
+
+        #loading {
+            display: none;
+            font-size: 14px;
+            color: #0277bd;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container" id="login-container">
+        <h2>Onenetworx Login</h2>
+        <input type="email" id="username" placeholder="Email">
+        <input type="password" id="password" placeholder="Password">
+        
+        <button class="btn mode-btn" id="btn-encoding">Encoding Mode</button>
+        <button class="btn mode-btn" id="btn-viewer">Viewer Mode</button>
+
+        <button class="btn" id="btn-login">Login</button>
+        
+        <p id="loading">Logging in...</p>
+        <p id="error-message"></p>
+    </div>
+
+    <script type="module">
+        // Import Firebase Modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
+        import firebaseConfig from "./js/firebase-config.js"; // Import Firebase Config
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        
+        // Background Image Looping Logic
+        const images = [
+            "./assets/bg1.png",
+            "./assets/bg2.png",
+            "./assets/bg3.png",
+            "./assets/bg4.png",
+            "./assets/bg5.png"
+        ];
+        let currentImageIndex = 0;
+
+        function changeBackground() {
+            document.body.style.background = `url('${images[currentImageIndex]}') center/cover no-repeat`;
+            currentImageIndex = (currentImageIndex + 1) % images.length;
+        }
+
+        setInterval(changeBackground, 5000); // Change every 5 seconds
+        changeBackground(); // Set initial background
+
+        // Show Login Container with Animation
+        window.addEventListener("load", function() {
+            setTimeout(() => {
+                document.getElementById("login-container").classList.add("show");
+            }, 200);
+        });
+
+        // Mode Selection Logic
+        let selectedMode = null;
+        const loginButton = document.getElementById("btn-login");
+        const encodingBtn = document.getElementById("btn-encoding");
+        const viewerBtn = document.getElementById("btn-viewer");
+
+        encodingBtn.addEventListener("click", function () {
+            toggleLoginButton("Encoding", encodingBtn);
+        });
+
+        viewerBtn.addEventListener("click", function () {
+            toggleLoginButton("Viewer", viewerBtn);
+        });
+
+        function toggleLoginButton(mode, clickedButton) {
+            selectedMode = mode;
+            loginButton.style.display = "block";
+
+            encodingBtn.classList.remove("active");
+            viewerBtn.classList.remove("active");
+            clickedButton.classList.add("active");
+        }
+
+        // Login Functionality
+        loginButton.addEventListener("click", login);
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                login();
+            }
+        });
+
+        function login() {
+            const email = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            const errorMessage = document.getElementById("error-message");
+            const loadingMessage = document.getElementById("loading");
+
+            if (!email || !password) {
+                errorMessage.textContent = "Please enter both email and password.";
+                errorMessage.style.display = "block";
+                return;
+            }
+
+            // Show loading message
+            loadingMessage.style.display = "block";
+            errorMessage.style.display = "none";
+
+            // Firebase Authentication Login
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    console.log("User logged in:", user.email);
+                    loadingMessage.style.display = "none";
+
+                    // Redirect based on role
+                    if (selectedMode === "Encoding") {
+                        window.location.href = "EncodingEncoder.html";
+                    } else if (selectedMode === "Viewer") {
+                        window.location.href = "ViewingEncoder.html";
+                    } else {
+                        window.location.href = "dashboard.html";
+                    }
+                })
+                .catch((error) => {
+                    loadingMessage.style.display = "none";
+                    errorMessage.textContent = "Invalid login. Please check credentials.";
+                    errorMessage.style.display = "block";
+                });
+        }
+    </script>
+</body>
+</html>
