@@ -90,10 +90,17 @@
             color: #0277bd;
             margin-top: 10px;
         }
+        
+        .company-logo {
+            width: 100px;
+            height: auto;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="login-container" id="login-container">
+        <img src="/api/placeholder/100/100" alt="Onenetworx Logo" class="company-logo">
         <h2>Onenetworx Login</h2>
         <input type="email" id="username" placeholder="Email">
         <input type="password" id="password" placeholder="Password">
@@ -168,12 +175,20 @@
         // Login Functionality
         loginButton.addEventListener("click", login);
         document.addEventListener("keydown", function (event) {
-            if (event.key === "Enter") {
+            if (event.key === "Enter" && selectedMode) {
                 login();
             }
         });
 
         function login() {
+            // Make sure a mode is selected
+            if (!selectedMode) {
+                const errorMessage = document.getElementById("error-message");
+                errorMessage.textContent = "Please select either Encoding or Viewer mode.";
+                errorMessage.style.display = "block";
+                return;
+            }
+            
             const email = document.getElementById("username").value;
             const password = document.getElementById("password").value;
             const errorMessage = document.getElementById("error-message");
@@ -196,19 +211,18 @@
                     console.log("User logged in:", user.email);
                     loadingMessage.style.display = "none";
 
-                    // Redirect based on role
+                    // Redirect based on role - only to EncodingEncoder.html or ViewingEncoder.html
                     if (selectedMode === "Encoding") {
                         window.location.href = "EncodingEncoder.html";
                     } else if (selectedMode === "Viewer") {
                         window.location.href = "ViewingEncoder.html";
-                    } else {
-                        window.location.href = "dashboard.html";
                     }
                 })
                 .catch((error) => {
                     loadingMessage.style.display = "none";
                     errorMessage.textContent = "Invalid login. Please check credentials.";
                     errorMessage.style.display = "block";
+                    console.error("Login error:", error.code, error.message);
                 });
         }
     </script>

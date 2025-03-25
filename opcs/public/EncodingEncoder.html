@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Policy Form</title>
-        <style>
-            body {
+    <style>
+        body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
             margin: 20px;
@@ -13,7 +13,7 @@
             padding-top: 70px; /* Adjust based on navbar height */
         }
 
-         /* Navbar Styling */
+        /* Navbar Styling */
         .navbar {
             background-color: #a7c7e7;
             color: white;
@@ -27,6 +27,7 @@
             top: 0;
             left: 0;
             height: 60px; /* Adjust height as needed */
+            z-index: 1000; /* Ensure navbar is above other content */
         }
 
         .navbar .logo {
@@ -66,7 +67,7 @@
             border: 1px solid #ccc;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-            z-index: 1;
+            z-index: 1001;
             width: 150px;
         }
 
@@ -197,6 +198,8 @@
             display: flex;
             flex-direction: column;
             position: relative;
+            max-height: 80vh;
+            overflow-y: auto;
         }
 
         /* Centered Close Button */
@@ -214,35 +217,39 @@
             color: red;
         }
 
-        /* Centered Close Button at Bottom */
-        #closeModalBtn {
-            align-self: center; /* Centers the button */
+        /* Modal Buttons */
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
             margin-top: 20px;
-            padding: 10px 20px;
-            background-color: blue;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
         }
 
-        #closeModalBtn:hover {
-            background-color: #0056b3;
+        /* Summary details styling */
+        #summaryDetails ul {
+            max-height: 50vh;
+            overflow-y: auto;
+            padding-left: 20px;
         }
-        </style>
+
+        #summaryDetails li {
+            margin-bottom: 5px;
+        }
+
+    </style>
 </head>
 <body>
 
     <!-- Navbar -->
     <div class="navbar">
         <div class="logo">
-            <img src="./assets/bg6.png" alt="Company Logo"> <!-- Replace with your logo -->
+            <img src="./assets/bg6.png" alt="Company Logo">
             <span><h2>Onenetworx</h2></span>
         </div>
 
         <div class="profile" onclick="toggleProfileMenu()">
-            <span>Juan Dela Cruz</span>
-            <img src="./assets/bg6.png" alt="Profile"> <!-- Replace with profile picture -->
+            <span id="userName">Juan Dela Cruz</span>
+            <img src="./assets/bg6.png" alt="Profile">
             <div class="profile-menu" id="profileMenu">
                 <a href="#" onclick="openProfileModal()">Edit Profile</a>
                 <a href="#" onclick="logout()">Logout</a>
@@ -305,10 +312,10 @@
                 <input type="number" id="pd" name="pd" step="any">
 
                 <label for="pa">PA:</label>
-                <input type="text" id="pa" name="pa" step="any">
+                <input type="text" id="pa" name="pa">
 
                 <label for="others">Others:</label>
-                <input type="text" id="others" name="others" step="any">
+                <input type="text" id="others" name="others">
             </div>
 
             <!-- Second Column -->
@@ -329,10 +336,10 @@
                 <input type="number" id="premPa" name="premPa" step="any">
 
                 <label for="premOther1">PREM-OTHER1:</label>
-                <input type="text" id="premOther1" name="premOther1" step="any">
+                <input type="text" id="premOther1" name="premOther1">
 
                 <label for="totalNetPremium">TOTAL NET PREMIUM:</label>
-                <input type="number" id="totalNetPremium" name="totalNetPremium" step="any">
+                <input type="number" id="totalNetPremium" name="totalNetPremium" step="any" required>
 
                 <label for="docStamp">DOC. STAMP:</label>
                 <input type="number" id="docStamp" name="docStamp" step="any">
@@ -347,7 +354,7 @@
                 <input type="number" id="fst" name="fst" step="any">
 
                 <label for="others1">OTHERS1:</label>
-                <input type="text" id="others1" name="others1" step="any">
+                <input type="text" id="others1" name="others1">
 
                 <label for="grossPremium">Gross Premium/Total Amount Due:</label>
                 <input type="number" id="grossPremium" name="grossPremium" step="any">
@@ -376,163 +383,135 @@
             <button type="submit">Submit Policy</button>
         </div>
     </form>
-</div>
 
 <!-- Modal -->
 <div id="summaryModal" class="modal">
     <div class="modal-content">
-        <span class="close-btn">&times;</span> <!-- X button to close -->
+        <span class="close-btn" onclick="closeModal()">&times;</span>
         <h2>Policy Submission Summary</h2>
         <div id="summaryDetails"></div>
-        <button id="closeModalBtn">Close</button> <!-- Close button -->
+        <div class="modal-buttons">
+            <button id="confirmSubmit">Confirm & Submit</button>
+            <button id="cancelSubmit" onclick="closeModal()">Cancel</button>
+        </div>
     </div>
 </div>
 
 <script>
-
+    // Your Google Apps Script Web App URL
+    const API_URL = "https://script.google.com/macros/s/AKfycbwR4vpOWsx7VMDjzj6qh1SbbKliN2zPz0T71vEgIfpMDDoQ7XO0LscVFnnT4wCy4cro/exec";
+    let currentPolicyData = {};
+    
     // Toggle Profile Dropdown
     function toggleProfileMenu() {
-            const menu = document.getElementById("profileMenu");
-            menu.style.display = menu.style.display === "block" ? "none" : "block";
-        }
-
-        // Close dropdown if clicked outside
-        window.onclick = function(event) {
-            if (!event.target.closest('.profile')) {
-                document.getElementById("profileMenu").style.display = "none";
-            }
-        };
-
-        // Logout Functionality
-        function logout() {
-            alert("Logging out...");
-            // Implement actual logout functionality here
-        }
-
-        // Open Profile Modal (Placeholder)
-        function openProfileModal() {
-            alert("Profile modal will open.");
-            // Implement actual profile editing modal here
-        }
-
-        document.getElementById("policyForm").addEventListener("submit", async function(event) {
-    event.preventDefault(); // Prevent form submission
-
-    let formData = new FormData(this);
-    let summaryHTML = "<ul>";
-    let policyData = {};
-
-    // Convert form data to an object
-    formData.forEach((value, key) => {
-        policyData[key] = value;
-        summaryHTML += `<li><strong>${key}:</strong> ${value}</li>`;
-    });
-
-    summaryHTML += "</ul>";
-
-    // Insert summary into modal
-    document.getElementById("summaryDetails").innerHTML = summaryHTML;
-
-    // Show modal
-    document.getElementById("summaryModal").classList.add("show");
-
-    // Wait for user confirmation (optional)
-    document.getElementById("confirmSubmit").addEventListener("click", async function() {
-        await submitPolicy(policyData);
-    });
-});
-
-const API_URL = "https://script.google.com/macros/s/AKfycbwR4vpOWsx7VMDjzj6qh1SbbKliN2zPz0T71vEgIfpMDDoQ7XO0LscVFnnT4wCy4cro/exec";
-
-// Function to fetch and display policies from Google Sheets
-async function loadPolicies() {
-    try {
-        const response = await fetch(`${API_URL}?action=getPolicies`);
-        const data = await response.json();
-
-        if (!response.ok || !Array.isArray(data)) {
-            throw new Error(data.error || "Failed to fetch policies.");
-        }
-
-        const policyTableBody = document.getElementById("policyTableBody");
-        policyTableBody.innerHTML = ""; // Clear existing data
-
-        data.forEach(policy => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${policy.issueDate || "N/A"}</td>
-                <td>${policy.assuredName || "N/A"}</td>
-                <td>${policy.policyNumber || "N/A"}</td>
-                <td>${policy.provider || "N/A"}</td>
-                <td>${policy.totalNetPremium || "N/A"}</td>
-                <td>${policy.dueDate || "N/A"}</td>
-            `;
-            policyTableBody.appendChild(row);
-        });
-
-    } catch (error) {
-        console.error("Error fetching policies:", error);
-        alert("Failed to load policies. Please check your internet connection.");
+        const menu = document.getElementById("profileMenu");
+        menu.style.display = menu.style.display === "block" ? "none" : "block";
     }
-}
-
-// Function to submit a new policy to Google Sheets
-async function submitPolicy(policyData) {
-    try {
-        const response = await fetch(API_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "addPolicy", ...policyData }),
-        });
-
-        const result = await response.json();
-        if (!response.ok || !result.success) {
-            throw new Error(result.error || "Failed to submit policy.");
-        }
-
-        alert("Policy added successfully!");
-        closeModal();
-        document.getElementById("policyForm").reset();
-        loadPolicies(); // Refresh the table
-
-    } catch (error) {
-        console.error("Error adding policy:", error);
-        alert("Submission failed. Please try again later.");
-    }
-}
-
-// Handle form submission
-document.getElementById("policyForm").addEventListener("submit", async function (event) {
-    event.preventDefault(); // Prevent default form submission
-
-    let formData = new FormData(this);
-    let policyData = {};
-
-    // Convert formData into an object
-    formData.forEach((value, key) => {
-        policyData[key] = value.trim();
-    });
-
-    // Validate required fields
-    if (!policyData.issueDate || !policyData.assuredName || !policyData.policyNumber) {
-        alert("Please fill in all required fields.");
-        return;
-    }
-
-    // Submit policy
-    await submitPolicy(policyData);
-});
-
-// Function to close the modal
-function closeModal() {
-    document.getElementById("summaryModal").classList.remove("show");
-}
-
-// Load policies when page loads
-document.addEventListener("DOMContentLoaded", loadPolicies);
-
-
-    </script>
     
+    // Close dropdown if clicked outside
+    window.onclick = function(event) {
+        if (!event.target.closest('.profile')) {
+            document.getElementById("profileMenu").style.display = "none";
+        }
+        if (event.target === document.getElementById("summaryModal")) {
+            closeModal();
+        }
+    };
+    
+    // Logout Functionality
+    function logout() {
+        alert("Logging out...");
+        // window.location.href = "login.html";
+    }
+    
+    // Open Profile Modal (Placeholder)
+    function openProfileModal() {
+        alert("Profile modal will open here.");
+    }
+    
+    // Function to close the modal
+    function closeModal() {
+        document.getElementById("summaryModal").classList.remove("show");
+    }
+    
+    // Validate Required Fields
+    function validatePolicyData(policyData) {
+        const requiredFields = ["issueDate", "assuredName", "policyNumber", "totalNetPremium"];
+        for (const field of requiredFields) {
+            if (!policyData[field] || policyData[field].trim() === "") {
+                alert(`❌ ${field.replace(/([A-Z])/g, ' $1')} is required!`);
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    // Function to submit policy data
+    async function submitPolicy(policyData) {
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(policyData),
+            });
+    
+            if (response.ok) {
+                const result = await response.json();
+                alert("✅ Policy submitted successfully!");
+                console.log(result);
+                // Optionally reset the form
+                document.getElementById("policyForm").reset();
+                closeModal();
+            } else {
+                throw new Error("Server error");
+            }
+        } catch (error) {
+            alert(`⚠️ Submission failed: ${error.message}`);
+            console.error(error);
+        }
+    }
+    
+    // Handle form submission and show confirmation modal
+    document.getElementById("policyForm").addEventListener("submit", function(event) {
+        event.preventDefault(); // Prevent default form submission
+    
+        let formData = new FormData(this);
+        let policyData = {};
+        let summaryHTML = "<ul>";
+    
+        // Convert FormData to JSON and build summary for modal
+        formData.forEach((value, key) => {
+            if (value && value.trim() !== "") {
+                policyData[key] = value.trim();
+                summaryHTML += `<li><strong>${key.replace(/([A-Z])/g, ' $1')}:</strong> ${value}</li>`;
+            }
+        });
+    
+        summaryHTML += "</ul>";
+        currentPolicyData = policyData;
+    
+        // Insert summary into modal
+        document.getElementById("summaryDetails").innerHTML = summaryHTML;
+    
+        // Show confirmation modal
+        document.getElementById("summaryModal").classList.add("show");
+    });
+    
+    // Handle confirm submission button
+    document.getElementById("confirmSubmit").addEventListener("click", function() {
+        if (validatePolicyData(currentPolicyData)) {
+            submitPolicy(currentPolicyData);
+        }
+    });
+    
+    // Close modal when "X" button is clicked
+    document.querySelector(".close-btn").addEventListener("click", closeModal);
+    
+    // Prevent form resubmission on page reload
+    if (window.history.replaceState) {
+        window.history.replaceState(null, null, window.location.href);
+    }
+    </script>
+
 </body>
 </html>
