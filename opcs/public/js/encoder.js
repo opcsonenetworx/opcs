@@ -2,26 +2,40 @@ import { auth } from "./firebase-config.js";
 import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
 
 const API_URL = "https://script.google.com/macros/s/AKfycbwR4vpOWsx7VMDjzj6qh1SbbKliN2zPz0T71vEgIfpMDDoQ7XO0LscVFnnT4wCy4cro/exec";
-
 const policyForm = document.getElementById("policyForm");
 const encoderNameElement = document.getElementById("encoderName");
 let currentUserEmail = "Unknown"; // Default value
 
-// Listen for authentication state changes
+// Monitor Firebase Auth State
 onAuthStateChanged(auth, (user) => {
   if (user) {
     currentUserEmail = user.email;
-    encoderNameElement.textContent = `Logged in as: ${user.email}`; // Display encoder's name
+    encoderNameElement.textContent = `Logged in as: ${user.email}`; // Show encoder name
   } else {
     window.location.href = "index.html"; // Redirect if not logged in
   }
 });
 
-// Handle Form Submission
-policyForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
+// Validate Required Fields Dynamically
+function validatePolicyData(policyData) {
+  const requiredFields = [
+    "issueDate",
+    "assuredName",
+    "policyNumber",
+    "totalNetPremium",
+  ];
 
-  const formData = new FormData(policyForm);
+  for (const field of requiredFields) {
+    if (!policyData[field] || policyData[field].trim() === "") {
+      alert(`⚠️ ${field.replace(/([A-Z])/g, ' $1')} is required!`);
+      return false;
+    }
+  }
+  return true;
+}
+
+// Build Policy Payload
+function buildPolicyPayload(formData) {
   let policyData = {};
 
   // Collect form data into an object
@@ -32,68 +46,50 @@ policyForm.addEventListener("submit", async (event) => {
   // Add metadata
   policyData.action = "addPolicy";
   policyData.employeeHandler = currentUserEmail;
+  policyData.dateEncoded = new Date().toISOString();
 
-  // Validate required fields
-  if (
-    !policyData.issueDate || 
-    !policyData.assuredName || 
-    !policyData.policyNumber || 
-    !policyData.totalNetPremium
-  ) {
-    alert("⚠️ Please fill in all required fields.");
-    return;
-  }
+  return policyData;
+}
 
+// Submit Policy Data
+async function submitPolicy(policyData) {
   try {
-    const isLocalhost = window.location.hostname === "127.0.0.1" || 
-                        window.location.hostname === "localhost";
-
-    const fetchUrl = API_URL;
-    const fetchOptions = {
+    const response = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(policyData),
-    };
+    });
 
-    if (isLocalhost) {
-      // Use JSONP approach for POST in development
-      const tempForm = document.createElement("form");
-      tempForm.style.display = "none";
-      tempForm.method = "POST";
-      tempForm.action = API_URL;
-
-      for (const key in policyData) {
-        const input = document.createElement("input");
-        input.type = "hidden";
-        input.name = key;
-        input.value = policyData[key];
-        tempForm.appendChild(input);
-      }
-
-      document.body.appendChild(tempForm);
-      tempForm.submit();
-
-      setTimeout(() => {
-        document.body.removeChild(tempForm);
-      }, 1000);
-
-      alert("✅ Policy submitted! Refresh page to see updates.");
-      policyForm.reset();
-      return;
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("🔴 Server Error:", errorText);
+      throw new Error(`Server error: ${response.status}`);
     }
 
-    const response = await fetch(fetchUrl, fetchOptions);
     const result = await response.json();
 
-    if (!response.ok || !result.success) {
-      throw new Error(result.error || "Failed to add policy.");
+    if (result.success) {
+      alert("✅ Policy submitted successfully!");
+      policyForm.reset(); // Clear form
+    } else {
+      throw new Error(result.message || "Failed to submit policy.");
     }
-
-    alert("✅ Policy added successfully!");
-    policyForm.reset();
   } catch (error) {
-    console.error("Error submitting policy:", error);
+    console.error("⚠️ Error Submitting Policy:", error);
     alert(`❌ Failed to submit policy: ${error.message}`);
+  }
+}
+
+// Handle Form Submission
+policyForm.addEventListener("submit", (event) => {
+  event.preventDefault(); // Prevent full page reload
+
+  const formData = new FormData(policyForm);
+  const policyData = buildPolicyPayload(formData);
+
+  // Validate before submission
+  if (validatePolicyData(policyData)) {
+    submitPolicy(policyData);
   }
 });
 
@@ -101,9 +97,10 @@ policyForm.addEventListener("submit", async (event) => {
 document.getElementById("logoutButton")?.addEventListener("click", async () => {
   try {
     await signOut(auth);
-    window.location.href = "index.html";
+    alert("✅ Logged out successfully!");
+    window.location.href = "index.html"; // Redirect to login
   } catch (error) {
     console.error("Logout error:", error);
-    alert("Failed to log out.");
+    alert("❌ Failed to log out. Please try again.");
   }
 });
