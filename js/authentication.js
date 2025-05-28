@@ -194,7 +194,7 @@ export async function initializeAuth(allowRedirect = false) {
         // Only redirect to login if explicitly allowed and not already on login page
         if (allowRedirect && !isOnLoginPage()) {
           console.log("Redirect allowed and not on login page, redirecting...");
-          window.location.href = "/opcs/public/index.html";
+          window.location.href = "index.html";
         } else {
           console.log("No redirect needed or not allowed");
         }
@@ -493,7 +493,7 @@ export function prefillEmployeeHandler() {
  * @param {string} redirectUrl URL to redirect to after logout
  * @returns {Promise<boolean>} Success status
  */
-export async function logout(redirectUrl = "/opcs/public/index.html") {
+export async function logout(redirectUrl = "index.html") {
   // Clear any listeners
   if (unsubscribeUserListener) {
     unsubscribeUserListener();
