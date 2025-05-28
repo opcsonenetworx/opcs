@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Onenetworx Login</title>
+    <style>
+        /* General Styles */
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            transition: background 1s ease-in-out;
+        }
+
+        /* Login Container */
+        .login-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 350px;
+            position: absolute;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+        }
+
+        .show {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Input Fields */
+        input {
+            width: 90%;
+            padding: 12px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: #f0f0f0;
+        }
+
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .mode-btn {
+            background-color: #f0f0f0;
+            color: black;
+            border: 1px solid #ccc;
+        }
+
+        .mode-btn:hover {
+            background-color: #d9d9d9;
+        }
+
+        .active {
+            background-color: #0277bd !important;
+            color: white !important;
+            font-weight: bold;
+        }
+
+        #btn-login {
+            display: none;
+            background-color: #00c853;
+            color: white;
+        }
+
+        #btn-login:hover {
+            background-color: #009624;
+        }
+
+        #btn-login:disabled {
+            background-color: #a5d6a7;
+            cursor: not-allowed;
+        }
+
+        /* Status Messages */
+        #error-message {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            color: #721c24;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+
+        #loading {
+            display: none;
+            font-size: 14px;
+            color: #0277bd;
+            margin-top: 10px;
+        }
+
+        /* Logo */
+        .company-logo {
+            width: 100px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
+        /* Connection Status */
+        .connection-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            display: none;
+        }
+
+        .online {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .offline {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Offline indicator */
+        #offline-indicator {
+            display: none;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            background-color: #f8d7da;
+            color: #721c24;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div id="offline-indicator">OFFLINE MODE</div>
+    <div class="connection-status" id="connection-status"></div>
+    
+    <div class="login-container" id="login-container">
+        <img src="./assets/bg6.png" alt="Onenetworx Logo" class="company-logo">
+        <h2>Onenetworx Login</h2>
+        <input type="email" id="username" placeholder="Email" autocomplete="email">
+        <input type="password" id="password" placeholder="Password" autocomplete="current-password">
+
+        <button class="btn mode-btn" id="btn-encoding">Encoding Mode</button>
+        <button class="btn mode-btn" id="btn-viewer">Viewer Mode</button>
+
+        <button class="btn" id="btn-login">Login</button>
+
+        <p id="loading">Logging in...</p>
+        <p id="error-message"></p>
+    </div>
+
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+        
+        // Import authentication functions
+        import { 
+            initializeAuth, 
+            login, 
+            isOnline,
+            logout,
+            setAppMode,
+            getAppMode,
+            APP_MODES
+        } from './js/authentication.js';
+
+        // Import firebase-config for environment initialization
+        import { app, auth, db } from './js/firebase-config.js';
+
+        // Background Image Logic
+        const images = [
+            "./assets/bg1.png",
+            "./assets/bg2.png",
+            "./assets/bg3.png",
+            "./assets/bg4.png",
+            "./assets/bg5.png"
+        ];
+        let currentImageIndex = 0;
+        let bgInterval = setInterval(changeBackground, 5000);
+        changeBackground();
+
+        function changeBackground() {
+            document.body.style.background = `url('${images[currentImageIndex]}') center/cover no-repeat`;
+            currentImageIndex = (currentImageIndex + 1) % images.length;
+        }
+
+        function stopBackgroundChange() {
+            clearInterval(bgInterval);
+        }
+
+        // Setup connection status display
+        function setupConnectionStatusDisplay() {
+            const connectionStatus = document.getElementById('connection-status');
+            const offlineIndicator = document.getElementById('offline-indicator');
+            
+            function updateConnectionStatus() {
+                const online = isOnline();
+                connectionStatus.textContent = online ? 'Online' : 'Offline';
+                connectionStatus.className = `connection-status ${online ? 'online' : 'offline'}`;
+                connectionStatus.style.display = 'block';
+                
+                // Update offline indicator
+                offlineIndicator.style.display = online ? 'none' : 'block';
+                
+                // Update login button state
+                const loginButton = document.getElementById("btn-login");
+                if (loginButton && loginButton.style.display !== 'none') {
+                    loginButton.disabled = !online;
+                    if (!online) {
+                        loginButton.title = "Login unavailable in offline mode";
+                    } else {
+                        loginButton.title = "";
+                    }
+                }
+                
+                // Hide connection status indicator after 3 seconds
+                setTimeout(() => {
+                    connectionStatus.style.display = 'none';
+                }, 3000);
+            }
+            
+            window.addEventListener('online', updateConnectionStatus);
+            window.addEventListener('offline', updateConnectionStatus);
+            
+            // Listen for custom events from authentication.js
+            document.addEventListener('app:online', updateConnectionStatus);
+            document.addEventListener('app:offline', updateConnectionStatus);
+            document.addEventListener('firestore:connected', () => {
+                console.log("Firestore connected");
+            });
+            document.addEventListener('firestore:disconnected', () => {
+                console.log("Firestore disconnected");
+            });
+            
+            // Initial status
+            updateConnectionStatus();
+        }
+
+        // Show Login Animation
+        window.addEventListener("load", async function() {
+            setTimeout(() => {
+                document.getElementById("login-container").classList.add("show");
+            }, 200);
+            
+            // Setup connection status display
+            setupConnectionStatusDisplay();
+            
+            // Check if we're on the login page intentionally or user wants to switch modes
+            const urlParams = new URLSearchParams(window.location.search);
+            const intentionalLogin = urlParams.get('login') === 'true' || urlParams.get('switch_mode') === 'true';
+            
+            // If intentional login or mode switch, sign out any existing user
+            if (intentionalLogin) {
+                try {
+                    await logout(); // Use the logout function from authentication.js
+                    console.log("Previous user signed out for fresh login or mode switch");
+                } catch (error) {
+                    console.error("Error signing out:", error);
+                }
+            }
+            
+            // Initialize auth system but don't auto-redirect
+            try {
+                await initializeAuth(false); // Passing false to prevent auto-redirect
+                console.log("Auth system initialized without auto-redirect");
+            } catch (error) {
+                console.error("Auth initialization error:", error);
+                showError("System initialization error. Please try refreshing the page.");
+            }
+        });
+
+        // Mode Selection
+        let selectedMode = null;
+        const loginButton = document.getElementById("btn-login");
+        const encodingBtn = document.getElementById("btn-encoding");
+        const viewerBtn = document.getElementById("btn-viewer");
+
+        // Check for explicitly selected mode from URL params first
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlMode = urlParams.get('mode');
+        
+        if (urlMode && urlMode in APP_MODES) {
+            toggleMode(urlMode, urlMode === APP_MODES.ENCODING ? encodingBtn : viewerBtn);
+        } else {
+            // If no URL param, check session storage via auth module
+            const lastMode = getAppMode();
+            if (lastMode) {
+                toggleMode(lastMode, lastMode === APP_MODES.ENCODING ? encodingBtn : viewerBtn);
+            }
+        }
+
+        encodingBtn.addEventListener("click", () => toggleMode(APP_MODES.ENCODING, encodingBtn));
+        viewerBtn.addEventListener("click", () => toggleMode(APP_MODES.VIEWING, viewerBtn));
+
+        function toggleMode(mode, button) {
+            // Check if mode is one of the values in APP_MODES
+            const modeValues = Object.values(APP_MODES);
+            if (!mode || !modeValues.includes(mode)) {
+                console.error(`Invalid mode selected: ${mode}`);
+                return;
+            }
+            
+            selectedMode = mode;
+            loginButton.style.display = "block";
+            
+            // Update login button state based on connectivity
+            loginButton.disabled = !isOnline();
+
+            // Use authentication.js setAppMode function
+            setAppMode(mode);
+
+            encodingBtn.classList.remove("active");
+            viewerBtn.classList.remove("active");
+            button.classList.add("active");
+            
+            console.log(`Mode selected and set: ${mode}`);
+        }
+
+        // Form Validation
+        function isValidEmail(email) {
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailPattern.test(email);
+        }
+
+        function hideMessages() {
+            document.getElementById("error-message").style.display = "none";
+            document.getElementById("loading").style.display = "none";
+        }
+
+        function showError(message) {
+            const errorElement = document.getElementById("error-message");
+            errorElement.textContent = message;
+            errorElement.style.display = "block";
+            
+            // Shake animation for error
+            errorElement.style.animation = "shake 0.5s";
+            setTimeout(() => {
+                errorElement.style.animation = "";
+            }, 500);
+        }
+
+        // Login Functionality
+        loginButton.addEventListener("click", handleLogin);
+        
+        // Enter key support
+        document.getElementById("username").addEventListener("keydown", handleEnterKey);
+        document.getElementById("password").addEventListener("keydown", handleEnterKey);
+        
+        function handleEnterKey(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                if (selectedMode && loginButton.style.display !== "none" && !loginButton.disabled) {
+                    handleLogin();
+                } else if (!selectedMode) {
+                    showError("Please select Encoding or Viewer mode first.");
+                }
+            }
+        }
+
+        async function handleLogin() {
+            hideMessages();
+
+            if (!selectedMode) {
+                showError("Please select Encoding or Viewer mode.");
+                return;
+            }
+
+            const email = document.getElementById("username").value.trim();
+            const password = document.getElementById("password").value.trim();
+
+            if (!email || !password) {
+                showError("Please enter both email and password.");
+                return;
+            }
+
+            if (!isValidEmail(email)) {
+                showError("Please enter a valid email address.");
+                return;
+            }
+            
+            // Check offline status first
+            if (!isOnline()) {
+                showError("Unable to login while offline. Please check your internet connection.");
+                return;
+            }
+
+            // Disable login button while processing
+            loginButton.disabled = true;
+            document.getElementById("loading").style.display = "block";
+
+            try {
+                // Use the login function from authentication.js
+                const result = await login(email, password);
+                
+                console.log("Login successful, user authenticated");
+                
+                // Get the current mode from auth module
+                const currentMode = getAppMode() || selectedMode;
+                console.log(`Using mode for redirect: ${currentMode}`);
+                
+                // Stop background animation
+                stopBackgroundChange();
+                
+                // Use the APP_PAGES constant from authentication for consistency
+                const pageMap = {
+                    [APP_MODES.ENCODING]: "EncodingEncoder.html",
+                    [APP_MODES.VIEWING]: "ViewingEncoder.html"
+                };
+                
+                const redirectPage = pageMap[currentMode] || "index.html";
+                console.log(`Redirecting to: ${redirectPage}`);
+                window.location.href = redirectPage;
+            } catch (error) {
+                // Re-enable login button
+                loginButton.disabled = false;
+                
+                // Firebase specific auth errors
+                if (error.code === 'auth/invalid-credential' || 
+                    error.code === 'auth/user-not-found' || 
+                    error.code === 'auth/wrong-password') {
+                    showError("Invalid login. Please check your credentials.");
+                } else if (error.code === 'auth/too-many-requests') {
+                    showError("Too many login attempts. Please try again later.");
+                } else if (error.code === 'auth/network-request-failed') {
+                    showError("Network error. Please check your connection.");
+                } else if (error.code && error.code.startsWith('auth/')) {
+                    showError("Authentication error: " + error.message);
+                } else {
+                    showError("Login failed: " + (error.message || "Unknown error"));
+                }
+                console.error("Login error:", error.code, error.message);
+            } finally {
+                document.getElementById("loading").style.display = "none";
+            }
+        }
+
+        // Add CSS for shake animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+                20%, 40%, 60%, 80% { transform: translateX(5px); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

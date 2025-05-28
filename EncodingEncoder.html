@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Policy Form</title>
+    <style>
+        :root {
+            --primary-color: #4776E6;
+            --secondary-color: #8E54E9;
+            --text-color: #333;
+            --light-text: #666;
+            --border-radius: 12px;
+            --box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            padding-top: 80px;
+        }
+
+        /* Navbar Styling */
+        .navbar {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            width: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 70px;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .navbar .logo {
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar .logo img {
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
+            border-radius: 50%;
+            background-color: white;
+            padding: 5px;
+        }
+
+        .navbar .logo h2 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        /* Profile Dropdown */
+        .profile {
+            position: relative;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 20px;
+            transition: var(--transition);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .profile:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .profile img {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            margin-left: 10px;
+            border: 2px solid white;
+            object-fit: cover;
+        }
+
+        .profile-menu {
+            display: none;
+            position: absolute;
+            top: 55px;
+            right: 0;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            z-index: 1001;
+            width: 180px;
+            overflow: hidden;
+        }
+
+        .profile-menu.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .profile-menu a {
+            display: block;
+            padding: 12px 15px;
+            text-decoration: none;
+            color: var(--text-color);
+            font-size: 14px;
+            transition: var(--transition);
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .profile-menu a:last-child {
+            border-bottom: none;
+        }
+
+        .profile-menu a:hover {
+            background-color: #f5f5f5;
+            color: var(--primary-color);
+        }
+
+        /* Connection status indicators */
+        #connection-status {
+            animation: fadeIn 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        #offline-indicator {
+            animation: pulse 2s infinite;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 152, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0); }
+        }
+
+        /* Offline mode visual indicator */
+        .navbar.offline {
+            background: linear-gradient(90deg, #ff9800, #e91e63);
+        }
+
+        /* Add this code inside a <style> tag at the bottom of your HTML file */
+
+        /* Container */
+        .container {
+            max-width: 1100px;
+            margin: auto;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        h2 {
+            text-align: center; 
+            color: var(--primary-color);
+            margin-bottom: 25px;
+            font-weight: 600;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 3px;
+        }
+
+        .form-container {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .form-column {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: var(--light-text);
+            font-size: 14px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            transition: var(--transition);
+            background-color: #f9f9f9;
+        }
+
+        textarea {
+            resize: none;
+            height: 80px;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(71, 118, 230, 0.1);
+            background-color: white;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        button {
+            min-width: 200px;
+            padding: 14px 25px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(142, 84, 233, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(142, 84, 233, 0.4);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        /* User info display */
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+        
+        #userName {
+            font-weight: 500;
+            color: white;
+        }
+        
+        .user-role {
+            font-size: 12px;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 2px 8px;
+            border-radius: 10px;
+            color: white;
+            margin-top: 2px;
+        }
+
+        /* Form Sections */
+        .form-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .section-title {
+            font-size: 18px;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            width: 550px;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #aaa;
+            transition: var(--transition);
+        }
+
+        .close-btn:hover {
+            color: var(--primary-color);
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .modal-buttons button {
+            min-width: 150px;
+        }
+
+        #summaryDetails {
+            margin-top: 20px;
+        }
+
+        #summaryDetails h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        #summaryDetails ul {
+            max-height: 50vh;
+            overflow-y: auto;
+            padding-left: 20px;
+            list-style-type: none;
+        }
+
+        #summaryDetails li {
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #summaryDetails .field-name {
+            font-weight: 500;
+            color: var(--light-text);
+        }
+
+        #summaryDetails .field-value {
+            font-weight: 400;
+            color: var(--text-color);
+        }
+
+        /* Spinner */
+        #spinner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            backdrop-filter: blur(5px);
+        }
+
+        .spinner-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .spinner-circle {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(71, 118, 230, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .spinner-text {
+            margin-top: 15px;
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        /* Responsive adjustments */
+        @media screen and (max-width: 768px) {
+            body {
+                padding-top: 70px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            .navbar {
+                padding: 10px 15px;
+            }
+
+            .navbar .logo h2 {
+                font-size: 18px;
+            }
+
+            .form-column {
+                min-width: 100%;
+            }
+
+            .profile-menu {
+                width: 150px;
+                right: -10px;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+                margin: 0 10px;
+            }
+
+            h2 {
+                font-size: 20px;
+            }
+
+            button {
+                min-width: 180px;
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+        }
+
+        /* Required field indicator */
+        .required::after {
+            content: "*";
+            color: #e74c3c;
+            margin-left: 3px;
+        }
+
+        /* Form group hover effect */
+        .form-group:hover label {
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<div class="navbar">
+    <div class="logo">
+        <img src="./assets/bg6.png" alt="Company Logo">
+        <h2>Onenetworx</h2>
+    </div>
+
+    <div class="profile">
+        <div class="user-info">
+            <span id="userName">Loading...</span>
+            <span id="userRole" class="user-role">Loading...</span>
+        </div>
+        <img src="./assets/bg6.png" alt="Profile">
+        <div class="profile-menu" id="profileMenu">
+            <a href="#" id="profileEditBtn">Edit Profile</a>
+            <a href="#" id="logoutBtn">Logout</a>
+        </div>
+    </div>
+</div>
+
+<!-- Connection status indicator will be injected here by JavaScript -->
+<div id="connection-status" style="display: none;"></div>
+
+<div class="container">
+    <h2>Policy Encoding Form</h2>
+    <form id="policyForm">
+        <!-- Client Information Section -->
+        <div class="form-section">
+            <div class="section-title">Policy Details</div>
+            <div class="form-container">
+                <div class="form-column">
+                    <div class="form-group">
+                        <label for="issueDate">Issue Date:</label>
+                        <input type="date" id="issueDate" name="issueDate">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="lineOfBusiness">Line of Business:</label>
+                        <input type="text" id="lineOfBusiness" name="lineOfBusiness">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="assuredName" class="required">Assured Name:</label>
+                        <input type="text" id="assuredName" name="assuredName" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="policyNumber" class="required">Policy Number:</label>
+                        <input type="text" id="policyNumber" name="policyNumber" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="provider">Provider:</label>
+                        <input type="text" id="provider" name="provider">
+                    </div>
+                </div>
+
+                <div class="form-column">
+                    <div class="form-group">
+                        <label for="inceptionDate">Inception Date:</label>
+                        <input type="date" id="inceptionDate" name="inceptionDate">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="expiryDate" class="required">Expiry Date:</label>
+                        <input type="date" id="expiryDate" name="expiryDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="endorsementNumber">Endorsement Number:</label>
+                        <input type="text" id="endorsementNumber" name="endorsementNumber">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dueDate">Due Date:</label>
+                        <input type="date" id="dueDate" name="dueDate">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="mortgagee">Mortgagee:</label>
+                        <input type="text" id="mortgagee" name="mortgagee">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Property/Vehicle Information Section -->
+        <div class="form-section">
+            <div class="section-title">Property/Vehicle Information</div>
+            <div class="form-container">
+                <div class="form-column">
+                    <div class="form-group">
+                        <label for="plateNumber">Plate Number:</label>
+                        <input type="text" id="plateNumber" name="plateNumber">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="propertyUnitInsured">Property/Unit Insured:</label>
+                        <input type="text" id="propertyUnitInsured" name="propertyUnitInsured">
+                    </div>
+                </div>
+
+                <div class="form-column">
+                    <div class="form-group">
+                        <label for="clientContactNumber">Client Contact Number:</label>
+                        <input type="text" id="clientContactNumber" name="clientContactNumber">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="clientEmailAddress">Client Email Address:</label>
+                        <input type="email" id="clientEmailAddress" name="clientEmailAddress">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Coverage Details Section -->
+        <div class="form-section">
+            <div class="section-title">Coverage Details</div>
+            <div class="form-container">
+                <div class="form-column">
+                    <div class="form-group">
+                        <label for="pf">PF:</label>
+                        <input type="number" id="pf" name="pf" step="any">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="odTheftFlSumInsured">OD/THEFT/FL/SUM Insured:</label>
+                        <input type="number" id="odTheftFlSumInsured" name="odTheftFlSumInsured" step="any">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="aon">AON:</label>
+                        <input type="number" id="aon" name="aon" step="any">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bi">BI:</label>
+                        <input type="number" id="bi" name="bi" step="any">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pd">PD:</label>
+                        <input type="number" id="pd" name="pd" step="any">
+                    </div>
+                </div>
+
+                <div class="form-column">
+                    <div class="form-group">
+                        <label for="pa">PA:</label>
+                        <input type="text" id="pa" name="pa">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="others">Others:</label>
+                        <input type="text" id="others" name="others">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nameOfAgent">Name of Agent/Sub-Agent:</label>
+                        <input type="text" id="nameOfAgent" name="nameOfAgent">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="employeeHandler">Employee Handler:</label>
+                        <input type="text" id="employeeHandler" name="employeeHandler" readonly>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Premium Details Section -->
+        <div class="form-section">
+            <div class="section-title">Premium Details</div>
+            <div class="form-container">
+                <div class="form-column">
+                    <div class="form-group">
+                        <label for="premOdTFl">PREM-OD/T/FL:</label>
+                        <input type="number" id="premOdTFl" name="premOdTFl" step="any">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="premAon">PREM-AON:</label>
+                        <input type="number" id="premAon" name="premAon" step="any">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="premBi">PREM-BI:</label>
+                        <input type="number" id="premBi" name="premBi" step="any">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="premPd">PREM-PD:</label>
+                        <input type="number" id="premPd" name="premPd" step="any">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="premPa">PREM-PA:</label>
+                        <input type="text" id="premPa" name="premPa">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="premOther1">PREM-OTHER1:</label>
+                        <input type="text" id="premOther1" name="premOther1">
+                    </div>
+                </div>
+
+                <div class="form-column">
+                    <div class="form-group">
+                        <label for="totalNetPremium">Total Net Premium:</label>
+                        <input type="number" id="totalNetPremium" name="totalNetPremium" step="any">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="docStamp">Doc. Stamp:</label>
+                        <input type="number" id="docStamp" name="docStamp" step="any">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="vat">VAT:</label>
+                        <input type="number" id="vat" name="vat" step="any">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="lgt">LGT:</label>
+                        <input type="number" id="lgt" name="lgt" step="any">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="fst">FST:</label>
+                        <input type="number" id="fst" name="fst" step="any">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="others1">Others 1:</label>
+                        <input type="text" id="others1" name="others1">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-container">
+                <div class="form-column">
+                    <div class="form-group">
+                        <label for="grossPremiumTotalAmountDue">Gross Premium/Total Amount Due:</label>
+                        <input type="number" id="grossPremiumTotalAmountDue" name="grossPremiumTotalAmountDue" step="any">
+                    </div>
+                </div>
+                
+                <div class="form-column">
+                    <div class="form-group">
+                        <label for="taxesPayment">Taxes Payment:</label>
+                        <input type="number" id="taxesPayment" name="taxesPayment" step="any">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="button-container">
+            <button type="submit" id="submitBtn">Submit Policy</button>
+        </div>
+    </form>
+</div>
+
+<!-- Spinner -->
+<div id="spinner" style="display:none;">
+    <div class="spinner-content">
+        <div class="spinner-circle"></div>
+        <div class="spinner-text">Processing...</div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="summaryModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <h2>Policy Submission Summary</h2>
+        <div id="summaryDetails">
+            <h3>Please confirm the following details:</h3>
+            <ul id="summaryList">
+                <!-- Summary items will be populated here -->
+            </ul>
+        </div>
+        <div class="modal-buttons">
+            <button id="confirmSubmit">Confirm & Submit</button>
+            <button id="cancelSubmit" onclick="closeModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Offline indicator will be injected here by JavaScript -->
+<div id="offline-indicator" style="display: none;"></div>
+
+<!-- Import script files -->
+<script type="module" src="./js/encoder.js"></script>
+
+<!-- Make closeModal globally available -->
+<script>
+    window.closeModal = function() {
+        const summaryModal = document.getElementById('summaryModal');
+        if (summaryModal) {
+            summaryModal.style.display = 'none';
+        }
+    };
+</script>
+</body>
+</html>
