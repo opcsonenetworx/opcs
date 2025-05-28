@@ -416,7 +416,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         logout()
           .then(() => {
             console.log("Logout successful");
-            window.location.href = "/opcs/public/index.html";
+            window.location.href = "index.html";
           })
           .catch(error => {
             console.error("Error during logout:", error);
